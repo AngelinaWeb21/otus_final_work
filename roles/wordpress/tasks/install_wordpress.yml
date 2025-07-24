@@ -32,17 +32,6 @@
     remote_src: yes
     extra_opts: [ "--strip-components=1" ]
 
-#- name: Создать пользователя root с доступом отовсюду
-#  delegate_to: 192.168.1.126
-#  mysql_user:
-#    name: root
-#    host: "192.168.1.%"
-#    password: "MyRootPassword123!"
-#    priv: "*.*:ALL,GRANT"
-#    state: present
-#    login_user: root
-#    login_password: "MyRootPassword123!"
-
 - name: Создать базу данных wordpress
   delegate_to: 192.168.1.126
   mysql_db:
@@ -53,33 +42,27 @@
     login_user: root
     login_password: "MyRootPassword123!"
 
+- name: Allow root login from 192.168.1.% hosts
+  delegate_to: 192.168.1.126
+  mysql_user:
+    name: root
+    host: "192.168.1.%"
+    password: "MyRootPassword123!"
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_user: root
+    login_password: "MyRootPassword123!"
 
-#- name: Создать базу данных wordpress
-#  mysql_db:
-#    name: wordpress
-#    state: present
-#    login_user: root
-#    login_password: "MyRootPassword123!"
-#    login_host: 192.168.1.126
-
-#- name: Выдать права пользователю root на все хосты
-#  mysql_user:
-#    name: root
-#    host: '%'
-#    password: "MyRootPassword123!"
-#    priv: "wordpress.*:ALL"
-#    state: present
-#    login_user: root
-#    login_password: "MyRootPassword123!"
-#    login_host: 192.168.1.126
-
-#- name: Установить wp-config
-#  template:
-#    src: wp-config.php.j2
-#    dest: /var/www/html/wp-config.php
-#    owner: www-data
-#    group: www-data
-#    mode: '0644'
+- name: Grant privileges to WordPress user
+  delegate_to: 192.168.1.126
+  mysql_user:
+    name: wordpress
+    host: "%"
+    password: "StrongPassword123!"
+    priv: "wordpress.*:ALL"
+    state: present
+    login_user: root
+    login_password: "MyRootPassword123!"
 
 - name: Настроить права на папку WordPress
   file:
