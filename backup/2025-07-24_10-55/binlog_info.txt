@@ -1,2 +1,0 @@
-Master Log File: binlog.000004
-Master Log Position: 157
