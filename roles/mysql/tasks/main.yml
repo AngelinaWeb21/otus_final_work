@@ -16,6 +16,7 @@
 - import_tasks: install_mysql_replication_master.yml
   tags:
     - install
+    - install_mysql
     - install_mysql_replication
     - install_mysql_replication_master
   when: "'db_master' in group_names"
@@ -23,6 +24,7 @@
 - import_tasks: install_mysql_replication_slave.yml
   tags:
     - install
+    - install_mysql
     - install_mysql_replication
     - install_mysql_replication_slave
   when: "'db_slave' in group_names"
@@ -30,6 +32,7 @@
 - import_tasks: install_mysql_backup.yml
   tags:
     - install
+    - install_mysql
     - install_mysql_backup
   when: "'monitoring' in group_names"
 
