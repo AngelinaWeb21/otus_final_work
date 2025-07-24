@@ -1,0 +1,40 @@
+---
+- name: Удалить (remove) проблемные пакеты MySQL (если остались старые, с предыдущей установки)
+  ansible.builtin.command: >
+    dpkg --remove --force-remove-reinstreq mysql-server mysql-server-8.0
+  ignore_errors: true
+
+- name: Очистить (purge) пакеты MySQL
+  ansible.builtin.command: >
+    apt purge -y mysql-server mysql-server-8.0 mysql-client mysql-common
+  ignore_errors: true
+
+- name: Автоудаление (autoremove) зависимостей
+  ansible.builtin.command: apt autoremove -y
+  ignore_errors: true
+
+- name: Установить MySQL
+  ansible.builtin.package:
+    name: mysql-server
+    state: present
+
+- name: Запустить и включить MySQL
+  ansible.builtin.service:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Установить пароль для root
+  ansible.builtin.shell: |
+    mysql --user=root --execute="
+      ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'MyRootPassword123!';
+      FLUSH PRIVILEGES;
+    "
+  args:
+    executable: /bin/bash
+
+- name: Проверить, что MySQL запущен
+  ansible.builtin.command: systemctl is-active mysql
+  register: mysql_active
+  changed_when: false
+  failed_when: mysql_active.stdout.strip() != "active"

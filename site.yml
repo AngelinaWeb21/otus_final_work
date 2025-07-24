@@ -1,0 +1,25 @@
+- hosts: db_master
+  become: yes
+  roles:
+    - mysql
+
+- hosts: db_slave
+  become: yes
+  roles:
+    - mysql
+
+- hosts: monitoring
+  become: yes
+  roles:
+    - mysql
+    - monitoring
+
+- hosts: nginx
+  become: yes
+  roles:
+    - nginx
+
+- hosts: wordpress
+  become: yes
+  roles:
+    - wordpress

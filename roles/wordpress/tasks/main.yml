@@ -1,0 +1,13 @@
+---
+- import_tasks: install_wordpress.yml
+  tags:
+    - install
+    - install_wordpress
+  when: "'wordpress' in group_names"
+
+
+- import_tasks: delete_wordpress.yml
+  tags:
+    - delete
+    - delete_wordpress
+  when: "'wordpress' in group_names"

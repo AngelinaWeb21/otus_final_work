@@ -1,0 +1,15 @@
+upstream wordpress_backend {
+    server 192.168.1.110;
+    server 192.168.1.81;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://wordpress_backend;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

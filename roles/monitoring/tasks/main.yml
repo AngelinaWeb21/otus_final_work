@@ -1,0 +1,23 @@
+---
+- import_tasks: install_node-exporter.yml
+  tags:
+    - install
+    - install_node-exporter
+
+- import_tasks: install_grafana-prometheus.yml
+  tags:
+    - install
+    - install_grafana-prometheus
+  when: "'monitoring' in group_names"
+
+
+- import_tasks: delete_node-exporter.yml
+  tags:
+    - delete
+    - delete_node-exporter
+
+- import_tasks: delete_grafana-prometheus.yml
+  tags:
+    - delete
+    - delete_grafana-prometheus
+  when: "'monitoring' in group_names"

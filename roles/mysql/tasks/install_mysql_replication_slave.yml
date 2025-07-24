@@ -1,0 +1,30 @@
+---
+- name: Настроить репликацию на slave
+  ansible.builtin.shell: |
+    mysql --user=root --password=MyRootPassword123! --execute="
+      STOP SLAVE;
+      CHANGE MASTER TO
+        MASTER_HOST='{{ hostvars[groups['db_master'][0]].ansible_host | default('192.168.1.126') }}',
+        MASTER_USER='repl',
+        MASTER_PASSWORD='ReplPassword123!',
+        MASTER_LOG_FILE='{{ hostvars[groups['db_master'][0]].master_log_file }}',
+        MASTER_LOG_POS={{ hostvars[groups['db_master'][0]].master_log_pos }};
+      START SLAVE;"
+  args:
+    executable: /bin/bash
+
+- name: Проверить статус репликации
+  ansible.builtin.shell: >
+    mysql -u root -pMyRootPassword123! -e "SHOW SLAVE STATUS\G"
+  register: slave_status
+  args:
+    executable: /bin/bash
+
+- name: Вывести статус репликации
+  ansible.builtin.debug:
+    var: slave_status.stdout_lines
+
+- name: Убедиться, что репликация активна
+  ansible.builtin.fail:
+    msg: "Репликация не запущена! Проверьте конфигурацию. Текущий статус:\n{{ slave_status.stdout }}"
+  when: "'Slave_IO_Running: Yes' not in slave_status.stdout or 'Slave_SQL_Running: Yes' not in slave_status.stdout"

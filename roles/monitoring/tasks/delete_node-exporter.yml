@@ -1,0 +1,15 @@
+---
+- name: Остановить Node Exporter
+  systemd:
+    name: node_exporter
+    state: stopped
+  ignore_errors: yes
+
+- name: Удалить Node Exporter файлы и сервис
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/local/bin/node_exporter
+    - /tmp/node_exporter.tar.gz
+    - /etc/systemd/system/node_exporter.service

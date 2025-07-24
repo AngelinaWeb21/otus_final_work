@@ -1,0 +1,4 @@
+- name: Обновить все пакеты до последних версий
+  apt:
+    update_cache: yes
+    upgrade: dist

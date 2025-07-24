@@ -1,0 +1,31 @@
+---
+- name: Остановить службу nginx (если запущена)
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+  ignore_errors: true
+
+- name: Удалить пакет nginx и связанные пакеты
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - nginx-common
+      - nginx-core
+    state: absent
+    purge: yes
+    autoremove: yes
+    update_cache: yes
+
+- name: Удалить оставшиеся конфиги nginx
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/nginx
+    - /var/log/nginx
+    - /var/lib/nginx
+    - /usr/share/nginx
+
+- name: Очистить кэш apt
+  ansible.builtin.command: apt-get clean
+  changed_when: false

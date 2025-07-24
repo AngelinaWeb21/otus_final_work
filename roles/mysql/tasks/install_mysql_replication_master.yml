@@ -1,0 +1,60 @@
+---
+- name: Создать пользователя репликации на master
+  ansible.builtin.shell: |
+    mysql --user=root --password=MyRootPassword123! --execute="
+      CREATE USER IF NOT EXISTS 'repl'@'%' IDENTIFIED BY 'ReplPassword123!';
+      GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+      FLUSH PRIVILEGES;
+      FLUSH TABLES WITH READ LOCK;
+      SHOW MASTER STATUS\G"
+  args:
+    executable: /bin/bash
+  register: master_status_raw
+
+- name: Настроить плагин аутентификации для пользователя репликации
+  ansible.builtin.shell: |
+    mysql --user=root --password=MyRootPassword123! --execute="
+      ALTER USER 'repl'@'%' IDENTIFIED WITH mysql_native_password BY 'ReplPassword123!';
+      FLUSH PRIVILEGES;
+    "
+  args:
+    executable: /bin/bash
+
+- name: Настроить server-id на master
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^server-id'
+    line: 'server-id = 1'
+    insertafter: '[mysqld]'
+  notify: restart mysql
+
+- name: Настроить server-id на slave
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^server-id'
+    line: 'server-id = 2'
+    insertafter: '[mysqld]'
+  notify: restart mysql
+
+- name: Извлечь File и Position
+  ansible.builtin.set_fact:
+    master_log_file: "{{ (master_status_raw.stdout | regex_search('File:\\s+(\\S+)', '\\1')) | first }}"
+    master_log_pos: "{{ (master_status_raw.stdout | regex_search('Position:\\s+(\\d+)', '\\1')) | first | int }}"
+
+- name: Показать File и Position
+  ansible.builtin.debug:
+    msg: "Master File: {{ master_log_file }}, Position: {{ master_log_pos }}"
+
+- name: Разрешить удаленные подключения (bind-address)
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^bind-address'
+    line: 'bind-address = 0.0.0.0'
+  notify: restart mysql
+
+- name: Разрешить удаленные подключения (mysqlx-bind-address)
+  ansible.builtin.lineinfile:
+    path: /etc/mysql/mysql.conf.d/mysqld.cnf
+    regexp: '^mysqlx-bind-address'
+    line: 'mysqlx-bind-address = 0.0.0.0'
+  notify: restart mysql

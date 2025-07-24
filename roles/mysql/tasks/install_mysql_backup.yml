@@ -1,0 +1,24 @@
+---
+- name: Создать директорию /ansible/backup
+  ansible.builtin.file:
+    path: /ansible/backup
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Копировать скрипт mysql_slave_backup.sh
+  ansible.builtin.copy:
+    src: mysql_slave_backup.sh
+    dest: /ansible/roles/mysql/files/mysql_slave_backup.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Настроить cron для запуска бэкапа каждые 10 минут
+  ansible.builtin.cron:
+    name: "MySQL Slave Backup"
+    user: root
+    minute: "*/5"
+    job: "/ansible/roles/mysql/files/mysql_slave_backup.sh >> /var/log/mysql_backup.log 2>&1"
+

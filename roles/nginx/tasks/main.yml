@@ -1,0 +1,13 @@
+---
+- import_tasks: install_nginx.yml
+  tags:
+    - install
+    - install_nginx
+  when: "'nginx' in group_names"
+
+
+- import_tasks: delete_nginx.yml
+  tags:
+    - delete
+    - delete_nginx
+  when: "'nginx' in group_names"

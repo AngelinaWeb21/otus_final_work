@@ -1,0 +1,33 @@
+---
+- name: Остановить Apache
+  service:
+    name: apache2
+    state: stopped
+  ignore_errors: true
+
+- name: Удалить директорию WordPress
+  file:
+    path: /var/www/html
+    state: absent
+
+- name: Удалить скачанный архив WordPress
+  file:
+    path: /tmp/wordpress.tar.gz
+    state: absent
+
+- name: Удалить зависимости
+  apt:
+    name:
+      - apache2
+      - php
+      - php-mysql
+      - php-curl
+      - php-gd
+      - php-xml
+      - php-mbstring
+      - wget
+      - unzip
+    state: absent
+    purge: yes
+    autoremove: yes
+

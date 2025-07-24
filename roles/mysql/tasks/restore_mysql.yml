@@ -1,0 +1,3 @@
+---
+- name: Запуск восстановления из последнего бэкапа
+  ansible.builtin.command: /ansible/roles/mysql/files/mysql_restore.sh

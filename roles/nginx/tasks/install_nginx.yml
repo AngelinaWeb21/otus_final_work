@@ -1,0 +1,36 @@
+---
+- name: Установить nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Удалить дефолтный конфиг из sites-enabled
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx 
+
+- name: Удалить дефолтный конфиг из sites-available
+  file:
+    path: /etc/nginx/sites-available/default
+    state: absent
+  notify: restart nginx
+
+- name: Настроить балансировщик
+  template:
+    src: load-balancer.conf.j2
+    dest: /etc/nginx/conf.d/load-balancer.conf
+    mode: '0644'
+  notify: restart nginx
+
+- name: Проверить конфигурацию nginx
+  command: nginx -t
+  register: nginx_check
+  changed_when: false
+  failed_when: nginx_check.rc != 0
+
+- name: Перезапустить nginx
+  service:
+    name: nginx
+    state: restarted

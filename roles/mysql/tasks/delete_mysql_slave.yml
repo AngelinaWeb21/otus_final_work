@@ -1,0 +1,54 @@
+---
+- name: Остановить MySQL
+  ansible.builtin.service:
+    name: mysql
+    state: stopped
+  ignore_errors: true
+
+- name: Удалить пакеты MySQL/MariaDB
+  ansible.builtin.package:
+    name:
+      - mysql-server
+      - mysql-client
+      - mysql-common
+      - mariadb-server
+      - mariadb-client
+    state: absent
+
+- name: Очистить директории MySQL
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /var/lib/mysql
+    - /etc/mysql
+
+- name: Удалить init-скрипт MySQL (SysV)
+  ansible.builtin.file:
+    path: /etc/init.d/mysql
+    state: absent
+  ignore_errors: true
+
+- name: Удалить все systemd unit-файлы MySQL
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/systemd/system/mysql.service
+    - /lib/systemd/system/mysql.service
+    - /lib/systemd/system/mysqld.service
+    - /etc/init.d/mysql
+  ignore_errors: true
+
+- name: Перезагрузить systemd
+  ansible.builtin.command: systemctl daemon-reload
+
+- name: Очистить ошибки systemd
+  ansible.builtin.command: systemctl reset-failed
+
+- name: Проверить, что mysql.service удален
+  ansible.builtin.command: systemctl status mysql
+  register: mysql_status
+  failed_when: mysql_status.rc == 0
+  changed_when: false
+  ignore_errors: true
